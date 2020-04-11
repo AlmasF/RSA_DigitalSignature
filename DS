@@ -1,0 +1,137 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+#define ull unsigned long long int
+
+ull power(ull x, ull y, ull p) {
+	ull res = 1;
+
+	x = x % p;
+
+	while (y > 0) {
+		if (y & 1) res = (res * x) % p;
+		y = y >> 1; //y = y / 2
+		x = (x * x) % p;
+	}
+	return res;
+}
+
+
+
+//алгоритм Эвклида нахождения нод
+ull GCD(ull e, ull t)
+{
+	while (e > 0)
+	{
+		ull myTemp;
+
+		myTemp = e;
+		e = t % e;
+		t = myTemp;
+	}
+
+	return t;
+}
+
+//функция D 5 24
+//условие для Этого числа (D * E) mod f(N) = 1
+ull calculateD(ull E, ull f_N)
+{
+
+	ull D;
+	ull k = 1;
+
+	while (1)
+	{
+		k += f_N; //
+
+		if (k % E == 0)
+		{
+			D = (k / E);
+			return D;
+		}
+	}
+
+}
+
+
+//функция находит число E,
+//число е меньше f(N) и взаимно простое с ним
+ull calculateE(ull t)
+{
+
+	ull e;
+
+	for (e = 2; e < t; e++)
+	{
+		if (GCD(e, t) == 1) // проверка на взаимную простота
+		{
+			return e;
+		}
+	}
+
+	return -1;
+}
+
+//простая хЭш-функция написанная исключительно для примера
+//возвращает остаток от деления на 5
+ull hash_function(ull message) {
+	ull res = message % 5;
+	return res;
+}
+
+
+
+int main() {
+	//определим исходные данные.
+	ull
+		//два простых числа "р" и "q"
+		p = 7919,
+		q = 7907,
+		//число 'N', их произведение 
+		N = p * q,
+		//результат функции f(N) = (p - 1)(q - 1)
+		f_N = (p - 1) * (q - 1);
+	//теперь можно вычислять числа "е" и "D"
+
+
+	ull E = calculateE(f_N), D = calculateD(E, f_N);
+
+	printf("Open keys:\nE: %llu", E);
+	printf("\nN: %llu", N);
+	printf("\nSecret key(D) for message:%llu\n", D);
+	// E, N - открытые ключи, ее передаем партнеру для проверки подписее,
+	// D - секретные ключ автору для подписывания
+
+
+	//предположим, что наше сообщение Это число 123
+	ull message = 123;
+	//проведем Это сообщение через одностороннюю функцию
+	//возвращающее число
+	ull m = hash_function(message);
+	printf("Hash result: %llu\n", m);
+
+	//сгенерируем цифровую подпись из результата
+	//хЭш-функции и секретного ключа D
+	//Эцп = m^D(mod N);
+	string dl = to_string(D);
+	ull remainderD = 0;
+	for (int i = 0; i < dl.length(); i++) remainderD = (remainderD * 10 + dl[i] - '0') % (N - 1);
+	ull DigitalSignature = power(m, remainderD, N);
+	printf("Signature: %llu\n", DigitalSignature);
+
+	//получателю пересылается Эцп DigitalSignature и исходное сообщение message;
+	//получатель восстанавливает хЭш-значение message
+	//m' = Эцп^E(mod N); 
+	string el = to_string(E);
+	ull remainderE = 0;
+	for (int i = 0; i < el.length(); i++) remainderE = (remainderE * 10 + el[i] - '0') % (N - 1);
+	ull m_h = power(DigitalSignature, remainderE, N);
+
+	printf("Recovered Hash:%llu\n", m_h);
+	printf("Received Hash: %llu\n", m);
+	if (m_h == m) printf("It's ok");
+	else printf("Signatures are wrong");
+	return 0;
+}
